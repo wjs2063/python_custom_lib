@@ -42,6 +42,7 @@ class AioHttpClient(HTTPClientSessionInterface):
         )
 
         print("세션 초기화")
+        return self._session
 
     async def close_session(self) -> None:
         """Lifespan 종료 시 호출"""

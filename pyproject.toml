@@ -7,4 +7,5 @@ dependencies = [
     "aiohttp>=3.13.2",
     "fastapi[all]>=0.124.4",
     "orjson>=3.11.5",
+    "requests>=2.32.5",
 ]

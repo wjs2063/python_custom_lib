@@ -8,7 +8,8 @@ class AppBaseException(Exception):
     detail : str = "Undefined Exception."
     code : int = 99
 
-    def __init__(self,status_code : int = 500, message: str | None = None,
+    def __init__(self,status_code : int | None = None, message: str | None =
+    None,
                  detail:str | None = None ) -> \
             None:
         self.status_code = status_code or self.status_code
@@ -53,12 +54,13 @@ from fastapi import FastAPI
 
 def add_exceptions(app: FastAPI) -> None:
     @app.exception_handler(AppBaseException)
-    def exception_handler(request: Request, exc: AppBaseException) -> JSONResponse:
+    def app_base_exception_handler(request: Request, exc: AppBaseException) \
+            -> JSONResponse:
         return exc.to_json_response()
 
     @app.exception_handler(Exception)
-
-    def exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    def undefined_exception_handler(request: Request, exc: Exception) -> (
+            JSONResponse):
 
         # logging
 

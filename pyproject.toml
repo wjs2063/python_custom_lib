@@ -7,5 +7,10 @@ dependencies = [
     "aiohttp>=3.13.2",
     "fastapi[all]>=0.124.4",
     "orjson>=3.11.5",
+    "pytest>=9.0.2",
     "requests>=2.32.5",
 ]
+# pytest 경로
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["src/tests"]

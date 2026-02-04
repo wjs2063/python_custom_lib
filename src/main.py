@@ -1,6 +1,7 @@
 from fastapi import FastAPI,Depends
 from contextlib import asynccontextmanager
 from shared.infra._request import aiohttp_client, AioHttpClient
+from src.exception.aggregate_root import add_exceptions, AuthTokenException
 from src.handler.wikipedia.handler import WikipediaHandler
 
 @asynccontextmanager
@@ -12,10 +13,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="tutorial", lifespan=lifespan)
 
+add_exceptions(app)
 
 # 2. 의존성 주입 Getter
 async def get_http_client() -> AioHttpClient:
     return aiohttp_client
+
+
+@app.get("/error")
+async def error_handler():
+    raise AuthTokenException()
 
 
 @app.get("/proxy/wiki")

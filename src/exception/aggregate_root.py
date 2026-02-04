@@ -22,6 +22,18 @@ class AppBaseException(Exception):
             content={"message": self.message,"code":self.code},
         )
 
+class ExternalAPIError(Exception):
+    """외부 API 호출 시 발생하는 기본 예외"""
+
+    def __init__(self, service_name: str, status_code: int, detail: str):
+        self.service_name = service_name
+        self.status_code = status_code
+        self.detail = detail
+        super().__init__(f"[{service_name}] {status_code}: {detail}")
+
+
+
+
 class AuthTokenException(AppBaseException):
     status_code = 401
     message = "유효하지않은 토큰입니다."

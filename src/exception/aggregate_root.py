@@ -59,6 +59,15 @@ class InternalServerException(AppBaseException):
     message = "Internal Server Error"
     code = 999
 
+##
+
+class PipelineException(AppBaseException):
+    """
+    파이프라인중 일부실패로 인한 에러
+    """
+    status_code = 500
+    message = "Partial Failure"
+    code = 100
 
 
 from fastapi import FastAPI

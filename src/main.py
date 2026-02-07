@@ -2,8 +2,11 @@ from fastapi import FastAPI,Depends
 from contextlib import asynccontextmanager
 from shared.infra.wrapper.aiohttp_wrapper import aiohttp_client, AioHttpClient
 from core.exceptions import register_application_exception, AuthTokenException
-from handler.wikipedia.handler import WikipediaHandler
+from apis.router import aggregate_router
+from handler.wikipedia.handler import WikipediaHandler,get_http_client
 from shared.utils.logger.root import log
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await aiohttp_client.initialize_session()
@@ -14,10 +17,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="tutorial", lifespan=lifespan)
 
 register_application_exception(app)
+app.include_router(aggregate_router)
 
-# 2. 의존성 주입 Getter
-async def get_http_client() -> AioHttpClient:
-    return aiohttp_client
+
 
 
 @app.get("/error")
@@ -35,22 +37,3 @@ async def get_wiki(
     # orjson으로 파싱된 dict 반환
     return await client.get(url, params=params)
 
-
-
-async def get_wiki_handler(
-    client: AioHttpClient = Depends(get_http_client)
-) -> WikipediaHandler:
-    return WikipediaHandler(client)
-# 3. 엔드포인트 구현
-@app.get("/wiki/global/{query}")
-async def search_global_wiki(
-    query: str,
-    handler: WikipediaHandler = Depends(get_wiki_handler)
-):
-    """
-    Example: /wiki/global/Samsung
-    Result: {"ko": "삼성전자는...", "en": "Samsung Electronics is..."}
-    """
-    log.info(f"query: {query}, 안녕")
-    response = await handler.search_global(query)
-    return response

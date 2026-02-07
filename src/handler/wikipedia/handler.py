@@ -1,6 +1,6 @@
 import asyncio
-from shared.infra.wrapper.aiohttp_wrapper import AioHttpClient
-
+from shared.infra.wrapper.aiohttp_wrapper import AioHttpClient,get_http_client
+from fastapi import Depends
 
 class WikipediaHandler:
 
@@ -43,3 +43,9 @@ class WikipediaHandler:
             # 에러 발생 시 전체 로직이 죽지 않고 해당 언어만 에러 메시지 반환
             print(f"Error fetching {lang} wiki: {e}")
             return "Search failed."
+
+
+def get_wiki_handler(
+    client: AioHttpClient = Depends(get_http_client)
+) -> WikipediaHandler:
+    return WikipediaHandler(client)

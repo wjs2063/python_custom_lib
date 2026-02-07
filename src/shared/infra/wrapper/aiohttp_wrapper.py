@@ -77,3 +77,7 @@ class AioHttpClient(HTTPClientSessionInterface):
 
 # 싱글톤 인스턴스 (Main에서 사용)
 aiohttp_client = AioHttpClient()
+
+
+def get_http_client() -> AioHttpClient:
+    return aiohttp_client

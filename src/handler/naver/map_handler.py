@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional, Tuple
 from handler.base import BaseClient
 from core.config import settings
 from core.exceptions import ExternalAPIError
-
+from typing import Any, Dict, List
 
 class NaverMapClient(BaseClient):
     """
@@ -129,7 +129,6 @@ class NaverMapClient(BaseClient):
                 detail=f"주소 변환 중 오류: {str(e)}"
             )
 
-from typing import Any, Dict, List
 
 
 class NaverSearchClient(BaseClient):
@@ -193,6 +192,13 @@ class NaverSearchClient(BaseClient):
 naver_map_client = NaverMapClient()
 # 싱글톤 인스턴스
 naver_search_client = NaverSearchClient()
+
+
+def get_naver_map_client():
+    return naver_map_client
+
+def get_naver_search_client():
+    return naver_search_client
 
 
 

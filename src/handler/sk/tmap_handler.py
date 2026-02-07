@@ -161,3 +161,6 @@ class TMapClient(BaseClient):
 # 싱글톤 인스턴스 제공
 tmap_client = TMapClient()
 
+
+def get_tmap_client() -> TMapClient:
+    return tmap_client

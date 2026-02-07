@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter,Depends,Query
 from handler.naver.map_handler import get_naver_map_client,get_naver_search_client, \
     NaverMapClient
-
+from shared.utils.logger.root import log
 router = APIRouter()
 
 
@@ -27,6 +27,7 @@ async def geocode_handler(query: str,
     :param client:
     :return:
     """
+    log.info("naver")
     return await client.geocode(query, coordinate, filter_type, count)
 
 @router.post("/reverse-geocode")
@@ -43,5 +44,6 @@ async def reverse_geocode_handler(lat: Annotated[float,Query(description="위도
     :param client:
     :return:
     """
-
+    log.info("naver")
     return await client.reverse_geocode(lat, lng, orders)
+

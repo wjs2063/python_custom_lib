@@ -1,4 +1,7 @@
 from fastapi.responses import JSONResponse
+
+from shared.utils.logger.context import trace_id_var
+from shared.utils.logger.root import log
 from fastapi import Request
 from fastapi import FastAPI
 
@@ -74,21 +77,24 @@ class PipelineException(AppBaseException):
 
 def register_application_exception(app: FastAPI) -> None:
     @app.exception_handler(AppBaseException)
-    def app_base_exception_handler(request: Request, exc: AppBaseException) \
+    async def app_base_exception_handler(request: Request,
+    exc: AppBaseException) \
             -> JSONResponse:
+        log.info(f"예외처리 핸들러 진행 -> {trace_id_var.get()}")
+        log.error(f"AppBaseException: {exc.message}", extra={"code": exc.code, "detail": exc.detail})
         return exc.to_json_response()
 
     @app.exception_handler(Exception)
-    def undefined_exception_handler(request: Request, exc: Exception) -> (
-            JSONResponse):
-
-        # logging
+    async def undefined_exception_handler(request: Request, exc: Exception):
+        # [수정] ContextVar에 값이 없으면 request.state에서 가져옴
+        trace_id = trace_id_var.get() or getattr(request.state, "trace_id", "-")
+        log.info(f"예외처리 핸들러 진행 -> {trace_id}",extra={"trace_id":trace_id})
+        log.error("Undefined Exception", extra={"trace_id": trace_id})
 
         return JSONResponse(
             status_code=500,
-            content={"message":"Internal Server Error","code":99},
+            content={"message": "Internal Server Error", "code": 99},
         )
-
 
 
 

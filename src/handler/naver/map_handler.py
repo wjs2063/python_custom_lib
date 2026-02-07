@@ -1,8 +1,8 @@
-from typing import Any, Dict, Optional, Tuple, List
+from typing import Any, Dict, Optional, Tuple
 from handler.base import BaseClient
 from core.config import settings
-from exception.aggregate_root import ExternalAPIError
-import aiohttp
+from core.exceptions import ExternalAPIError
+
 
 class NaverMapClient(BaseClient):
     """
@@ -129,7 +129,7 @@ class NaverMapClient(BaseClient):
                 detail=f"주소 변환 중 오류: {str(e)}"
             )
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class NaverSearchClient(BaseClient):

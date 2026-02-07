@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 from fastapi import Request
-
+from fastapi import FastAPI
 
 class AppBaseException(Exception):
     status_code = 500
@@ -70,10 +70,9 @@ class PipelineException(AppBaseException):
     code = 100
 
 
-from fastapi import FastAPI
 
 
-def add_exceptions(app: FastAPI) -> None:
+def register_application_exception(app: FastAPI) -> None:
     @app.exception_handler(AppBaseException)
     def app_base_exception_handler(request: Request, exc: AppBaseException) \
             -> JSONResponse:

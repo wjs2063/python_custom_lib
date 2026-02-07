@@ -41,20 +41,17 @@ class AioHttpClient(HTTPClientSessionInterface):
             json_serialize=lambda x: orjson.dumps(x).decode("utf-8")
         )
 
-        print("세션 초기화")
         return self._session
 
     async def close_session(self) -> None:
         """Lifespan 종료 시 호출"""
         if self._session:
             await self._session.close()
-        print("세션 종료")
 
     # --- 공통 요청 처리 메서드 (내부용) ---
     async def _request(self, method: str, url: str, **kwargs) -> Optional[dict]:
         if not self._session:
             raise RuntimeError("Client is not initialized. Check lifespan.")
-        print(f"[DEBUG] Session ID: {id(self._session)}")
         # 기본 헤더 설정 (압축 전송 요청)
         headers = kwargs.pop("headers", {}) or {}
         headers.setdefault("Accept-Encoding", "br, gzip, deflate")

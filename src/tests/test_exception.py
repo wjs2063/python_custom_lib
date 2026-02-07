@@ -1,12 +1,11 @@
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from exception.aggregate_root import (  # 예외 클래스가 정의된 위치에 맞게 수정하세요
-    add_exceptions,
+from core.exceptions import (  # 예외 클래스가 정의된 위치에 맞게 수정하세요
+    register_application_exception,
     NotFoundException,
     AuthTokenException,
-    BadRequestException,
-    AppBaseException
+    BadRequestException
 )
 @pytest.fixture
 def client(app):
@@ -16,7 +15,7 @@ def client(app):
 @pytest.fixture
 def app():
     _app = FastAPI()
-    add_exceptions(_app)
+    register_application_exception(_app)
 
     # 테스트를 위한 임시 엔드포인트들
     @_app.get("/not-found")

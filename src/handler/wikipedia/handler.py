@@ -1,5 +1,5 @@
 import asyncio
-from shared.infra._request import AioHttpClient, HTTPClientSessionInterface
+from shared.infra.wrapper.aiohttp_wrapper import AioHttpClient
 
 
 class WikipediaHandler:

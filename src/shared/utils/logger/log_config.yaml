@@ -1,0 +1,38 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+  default:
+    "()": pythonjsonlogger.json.JsonFormatter
+    format: "%(asctime)s %(levelname)s %(name)s %(module)s %(funcName)s %(lineno)s %(message)s"
+    json_ensure_ascii: False
+    rename_fields:
+      "asctime": "timestamp"
+      "levelname": "status"
+    static_fields:
+      "service": ext://src.shared.utils.logger.log_config.PROJECT_NAME
+      "env": ext://src.shared.utils.logger.log_config.ENVIRONMENT
+      "version": ext://src.shared.utils.logger.log_config.PROJECT_VERSION
+      "app_log": "true"
+handlers:
+  default:
+    formatter: default
+    class: logging.StreamHandler
+    stream: ext://sys.stderr
+  access:
+    formatter: default
+    class: logging.StreamHandler
+    stream: ext://sys.stdout
+#loggers:
+#  uvicorn.error:
+#    level: WARNING
+#    handlers:
+#      - default
+#    propagate: no
+#  uvicorn.access:
+#    level: INFO
+#    handlers:
+#      - access
+#    propagate: no
+root:
+  level: INFO
+  handlers: [default]  # 사용자 로그를 stderr(혹은 stdout)로 보냅니다.

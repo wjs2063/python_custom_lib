@@ -1,9 +1,9 @@
 import urllib.parse
-from typing import Any, Dict, Optional, List, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from handler.base import BaseClient
 from core.config import settings
-from exception.aggregate_root import ExternalAPIError
+from core.exceptions import ExternalAPIError
 
 
 class TMapClient(BaseClient):

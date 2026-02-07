@@ -1,9 +1,9 @@
 from fastapi import FastAPI,Depends
 from contextlib import asynccontextmanager
-from shared.infra._request import aiohttp_client, AioHttpClient
-from src.exception.aggregate_root import add_exceptions, AuthTokenException
-from src.handler.wikipedia.handler import WikipediaHandler
-
+from shared.infra.wrapper.aiohttp_wrapper import aiohttp_client, AioHttpClient
+from core.exceptions import register_application_exception, AuthTokenException
+from handler.wikipedia.handler import WikipediaHandler
+from shared.utils.logger.root import log
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await aiohttp_client.initialize_session()
@@ -13,7 +13,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="tutorial", lifespan=lifespan)
 
-add_exceptions(app)
+register_application_exception(app)
 
 # 2. 의존성 주입 Getter
 async def get_http_client() -> AioHttpClient:
@@ -51,5 +51,6 @@ async def search_global_wiki(
     Example: /wiki/global/Samsung
     Result: {"ko": "삼성전자는...", "en": "Samsung Electronics is..."}
     """
+    log.info(f"query: {query}, 안녕")
     response = await handler.search_global(query)
     return response

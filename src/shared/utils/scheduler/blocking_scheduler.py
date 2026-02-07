@@ -1,5 +1,6 @@
 import logging
 import logging
+import traceback
 from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
@@ -11,7 +12,8 @@ logger = logging.getLogger("token_worker")
 def my_listener(event):
     """작업이 끝날 때마다 호출되는 리스너"""
     if event.exception:
-        logger.error(f"❌ 작업 중 에러 발생: {event.exception}")
+        err_msg = traceback.format_exc()
+        logger.error(f"❌ 작업 중 에러 발생: {event.exception}, {err_msg}")
     else:
         # 스케줄러에서 해당 작업을 찾아 다음 실행 시간을 가져옴
         job = scheduler.get_job(event.job_id)
@@ -21,6 +23,7 @@ def my_listener(event):
 
 def refresh_token_job():
     # 실제 작업 내용
+    raise ValueError("에러")
     logger.info(f"{datetime.now()}, 실행 되었습니다")
 
 if __name__ == "__main__":

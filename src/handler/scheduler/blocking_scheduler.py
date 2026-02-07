@@ -1,30 +1,45 @@
 import logging
-import datetime
+import logging
+from datetime import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
-
+from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 # 1. 간단한 로깅 설정 (사용자의 root.py 설정을 불러와도 됩니다)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger("token_worker")
 
 # 2. 실행할 작업 정의
-def refresh_token_job(arg1, arg2):
-    now = datetime.datetime.now()
-    logger.info(f"[{now}] 토큰 갱신 작업을 수행합니다. (인자: {arg1}, {arg2})")
+def my_listener(event):
+    """작업이 끝날 때마다 호출되는 리스너"""
+    if event.exception:
+        logger.error(f"❌ 작업 중 에러 발생: {event.exception}")
+    else:
+        # 스케줄러에서 해당 작업을 찾아 다음 실행 시간을 가져옴
+        job = scheduler.get_job(event.job_id)
+        if job and job.next_run_time:
+            next_run = job.next_run_time.strftime('%Y-%m-%d %H:%M:%S')
+            logger.info(f"✅ [성공] 토큰 갱신 완료! 다음 실행 시각: {next_run}")
 
+def refresh_token_job():
+    # 실제 작업 내용
+    logger.info(f"{datetime.now()}, 실행 되었습니다")
 
-scheduler = BlockingScheduler()
+if __name__ == "__main__":
+    scheduler = BlockingScheduler()
 
-# 4. 작업 등록 (interval 방식)
-# - minutes=50: 50분마다 실행
-# - next_run_time: 생성 즉시(now) 실행하도록 설정 (이게 없으면 50분 뒤에 첫 실행됨)
-# - args: 작업 함수에 넘길 파라미터
-scheduler.add_job(
-    func=refresh_token_job,
-    trigger='interval',
-    seconds=5000,
-    next_run_time=datetime.datetime.now(),
-    args=["service_a", "v1"],
-    id="token_refresh_001" # 작업 식별자 (관리용)
-)
+    # 작업 등록
+    job_instance = scheduler.add_job(
+        refresh_token_job,
+        'interval',
+        seconds=10,
+        id="token_refresh_task",
+        next_run_time=datetime.now()
+    )
 
-scheduler.start()
+    # 2. 이벤트 리스너 등록 (작업 완료 시 my_listener 실행)
+    scheduler.add_listener(my_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+
+    logger.info("🚀 스케줄러가 가동되었습니다.")
+    try:
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()

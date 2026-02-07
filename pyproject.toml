@@ -5,6 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
     "aiohttp>=3.13.2",
+    "apscheduler>=3.11.2",
     "fastapi[all]>=0.124.4",
     "orjson>=3.11.5",
     "pytest>=9.0.2",

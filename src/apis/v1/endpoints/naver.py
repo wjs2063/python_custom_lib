@@ -36,7 +36,7 @@ async def reverse_geocode_handler(lat: Annotated[float,Query(description="위도
                                   client : NaverMapClient = Depends(
     get_naver_map_client)):
     """
-    위도/경도 좌표로부터 주소명을 가져옵니다
+    네이버 MAP API를 이용하여 위도/경도 좌표로부터 주소명을 가져옵니다
     :param lat:
     :param lng:
     :param orders:

@@ -11,3 +11,7 @@ aggregate_router = APIRouter()
 aggregate_router.include_router(wikipedia_router,prefix="/wikipedia",tags=["wikipedia"])
 aggregate_router.include_router(sk_router,prefix="/sk",tags=["sk"])
 aggregate_router.include_router(naver_router,prefix="/naver",tags=["naver"])
+
+@aggregate_router.get("/")
+async def index():
+    raise Exception()

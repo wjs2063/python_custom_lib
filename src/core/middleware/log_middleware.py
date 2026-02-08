@@ -17,8 +17,10 @@ class TraceIDMiddleWare:
 
         trace_id = str(uuid.uuid4())
         token = trace_id_var.set(trace_id)
-        request = Request(scope, receive)
-        request.state.trace_id = trace_id
+
+        # request의 state를 사용한 단일 요청내의 상태공유도 가능함
+        #request = Request(scope, receive)
+        #request.state.trace_id = trace_id
         """
         이렇게 하는 이유는 Exception 객체와 AppBaseException 객체를 처리하는 미들웨어가 달라서 
         context_var가 초기화된다. 
@@ -27,7 +29,6 @@ class TraceIDMiddleWare:
         
         그래서 request state에 주입하자
         """
-        print("middleware 실행")
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
@@ -36,7 +37,6 @@ class TraceIDMiddleWare:
             await send(message)
 
         try:
-            await self.app(scope, receive, send_wrapper)
-
+            await self.app(scope, receive, send)
         finally:
             trace_id_var.reset(token)

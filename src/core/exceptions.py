@@ -59,7 +59,7 @@ class NotFoundException(AppBaseException):
 
 class InternalServerException(AppBaseException):
     status_code = 500
-    message = "Internal Server Error"
+    message = "서버 내부 에러"
     code = 999
 
 ##
@@ -69,7 +69,7 @@ class PipelineException(AppBaseException):
     파이프라인중 일부실패로 인한 에러
     """
     status_code = 500
-    message = "Partial Failure"
+    message = "파이프라인 에러"
     code = 100
 
 

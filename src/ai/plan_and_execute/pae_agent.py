@@ -34,14 +34,10 @@ tools = [search_naver_local, get_lat_lng, search_wikipedia]
 class PlanExecuteState(TypedDict):
     input: str
     plan: List[str]
+    all_plans : list[str]
     past_steps: Annotated[List[Tuple[str, str]], operator.add]
     response: str
 
-class PlanExecuteState(TypedDict):
-    input: str
-    plan: List[str]
-    past_steps: Annotated[List[Tuple[str, str]], operator.add]
-    response: str
 
 llm = ChatOpenAI(model="gpt-4o", streaming=True)
 
@@ -60,17 +56,24 @@ class Act(BaseModel):
 
 # Planner 노드
 async def plan_node(state: PlanExecuteState):
-    prompt = f"사용자 질문: {state['input']}\n적절한 계획을 세워주세요."
+    prompt = f"""
+    당신은 사용자의 의도를 파악하여 답변을해주는 Agent의 계획을 설계하는 전문가입니다. 
+    사용자 질문: {state['input']}\n적절한 계획을 세워주세요.
+    반드시 한국어로 답변해주세요.
+    """
     planner = llm.with_structured_output(Plan)
     plan = await planner.ainvoke(prompt)
-    return {"plan": plan.steps}
+    return {"plan": plan.steps,"all_plans":plan.steps}
 
 # Re-plan 노드 (실행 결과를 보고 다음 결정)
+
 async def replan_node(state: PlanExecuteState):
     prompt = f"""사용자 질문: {state['input']}
         현재 계획: {state['plan']}
         실행 기록: {state['past_steps']}
-        위 기록을 바탕으로 계획을 업데이트하거나 최종 답변을 작성하세요."""
+        위 기록을 바탕으로 계획을 업데이트하거나 최종 답변을 작성하세요.
+        반드시 한국어로 답변해주세요
+"""
 
     replanner = llm.with_structured_output(Act)
     result = await replanner.ainvoke(prompt)
@@ -78,7 +81,7 @@ async def replan_node(state: PlanExecuteState):
     if isinstance(result.action, Response):
         return {"response": result.action.response}
     else:
-        return {"plan": result.action.steps}
+        return {"plan": result.action.steps,"all_plans":result.action.steps}
 
 
 from langgraph.prebuilt import create_react_agent

@@ -6,6 +6,7 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
+from shared.infra.wrapper.aiohttp_wrapper import get_http_client
 from handler.naver.map_handler import get_naver_map_client,get_naver_search_client
 from handler.wikipedia.handler import WikipediaHandler
 
@@ -26,7 +27,7 @@ async def get_lat_lng(address: str):
 async def search_wikipedia(query: str):
     """위키피디아에서 해당 키워드에 대한 상세 정보를 한국어/영어 버전으로 검색합니다."""
     # Depends를 사용할 수 없는 환경이므로 직접 생성 (실제 구현 시 context에 맞춰 주입)
-    client = get_naver_search_client()
+    client = get_http_client()
     handler = WikipediaHandler(client)
     return await handler.search_global(query)
 
@@ -63,19 +64,37 @@ async def research_node(state: SelfReflectionState):
         # Re-act 에이전트를 써도 되지만, 여기선 도구를 직접 호출하는 방식 예시
         # tools = [search_naver_local, get_lat_lng, search_wikipedia]
         # 실제 환경에선 ToolNode를 쓰거나 직접 호출 로직을 넣습니다.
-        res = await agent_executor.ainvoke({"messages": [HumanMessage(content=query)]})
+        search_prompt = f"""당신은 정보 수집 전문가입니다. 다음 작업에 집중하세요:
+        1. **정확성**: 장소의 정확한 명칭과 주소를 확인하세요.
+        2. **좌표 정보**: 주소가 확인되면 반드시 위도와 경도 좌표를 추출하세요.
+        3. **배경 지식**: 위키피디아 등을 통해 해당 장소나 지역의 역사적/문화적 맥락을 확보하세요.
+
+        검색어: {query}"""
+        res = await agent_executor.ainvoke({"messages": [HumanMessage(
+            content=search_prompt)]})
         new_results.append(f"Query: {query}\nResult: {res['messages'][-1].content}")
 
     return {"results": new_results, "search_queries": []}
 
 # 2. Grader Node (성찰 노드): 수집된 데이터 검증
 async def grade_node(state: SelfReflectionState):
-    prompt = f"""사용자 질문: {state['input']}
-현재까지 수집된 정보:
-{chr(10).join(state['results'])}
+    prompt = f"""당신은 데이터의 완전성을 검증하는 '품질 보증(QA) 전문가'입니다.
+    사용자의 질문과 현재까지 수집된 데이터를 비교하여 '합격(Sufficient)' 또는 '보완(Insufficient)' 판정을 내리세요.
 
-위 정보를 바탕으로 질문에 완벽히 답할 수 있는지 판단하세요.
-특히 장소의 좌표(위경도), 상세 정보, 역사적 배경 등 누락된 것이 있다면 추가 검색어를 생성하세요."""
+    [검토 대상]
+    - 사용자 질문: {state['input']}
+    - 현재 데이터:
+    {chr(10).join(state['results'])}
+
+    [검토 체크리스트 - 모든 항목을 만족해야 Sufficient입니다]
+    1. (정보의 구체성): 맛집이나 장소의 이름, 특징이 명확히 기술되었는가?
+    2. (지리 데이터): 해당 장소들의 위도(lat)와 경도(lng) 좌표가 모두 포함되었는가?
+    3. (심층 정보): 장소의 유래나 역사적 배경 등 '검색 이상의 가치'가 있는 정보가 포함되었는가?
+    4. (정확성): 수집된 정보들 사이에 모순은 없는가?
+
+    [결과 작성 가이드]
+    - 충분하지 않다면, '어떤 도구'를 사용해서 '무엇'을 더 찾아야 할지 비판(Critique)하고 구체적인 검색어를 제안하세요.
+    """
 
     grader = llm.with_structured_output(Grade)
     result = await grader.ainvoke(prompt)

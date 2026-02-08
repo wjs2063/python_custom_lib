@@ -57,9 +57,23 @@ class Act(BaseModel):
 # Planner 노드
 async def plan_node(state: PlanExecuteState):
     prompt = f"""
-    당신은 사용자의 의도를 파악하여 답변을해주는 Agent의 계획을 설계하는 전문가입니다. 
-    사용자 질문: {state['input']}\n적절한 계획을 세워주세요.
-    반드시 한국어로 답변해주세요.
+    당신은 복합적인 문제를 해결하기 위해 단계별 실행 계획을 수립하는 '전략 분석가'입니다.
+    사용자의 질문을 분석하여, 가용 도구를 효율적으로 사용하는 논리적인 계획을 세우세요.
+
+    [가용 도구 리스트]
+    1. search_naver_local: 장소명, 맛집, 위치 정보 검색
+    2. get_lat_lng: 특정 주소의 위도/경도 좌표 추출
+    3. search_wikipedia: 지역의 유래, 역사, 인물 등 백과사전적 정보 검색
+
+    [계획 수립 가이드라인]
+    - (의존성 고려): 주소를 먼저 검색한 후, 그 결과로 나온 주소를 바탕으로 좌표를 추출해야 합니다.
+    - (구체성): 각 단계는 하나의 명확한 목표를 가져야 합니다.
+    - (언어): 모든 계획과 결과물은 반드시 한국어로 작성합니다.
+    - (최적화): 중복되는 단계는 피하고, 목적 달성에 필요한 최소한의 경로를 설계하세요.
+
+    사용자 질문: {state['input']}
+    
+    위 질문을 해결하기 위한 최적의 단계별 계획을 생성하세요.
     """
     planner = llm.with_structured_output(Plan)
     plan = await planner.ainvoke(prompt)
@@ -68,12 +82,25 @@ async def plan_node(state: PlanExecuteState):
 # Re-plan 노드 (실행 결과를 보고 다음 결정)
 
 async def replan_node(state: PlanExecuteState):
-    prompt = f"""사용자 질문: {state['input']}
-        현재 계획: {state['plan']}
-        실행 기록: {state['past_steps']}
-        위 기록을 바탕으로 계획을 업데이트하거나 최종 답변을 작성하세요.
-        반드시 한국어로 답변해주세요
-"""
+    prompt = f"""
+    당신은 실행 결과를 검토하고 최종 답변을 완성하거나 계획을 수정하는 '품질 관리자'입니다.
+    
+    [현재 상황]
+    - 원래 목표: {state['input']}
+    - 남은 계획: {state['plan']}
+    - 지금까지의 실행 기록: {state['past_steps']}
+
+    [판단 기준]
+    1. **충분성**: 현재까지 수집된 정보가 사용자의 질문에 답변하기에 충분한가?
+    2. **정확성**: 도구 실행 결과에서 오류가 발생했거나 정보가 부족하지 않은가?
+    3. **연속성**: 남은 계획이 여전히 유효한가? (이미 달성했다면 계획에서 삭제)
+
+    [행동 지침]
+    - 모든 정보가 수집되었다면: `Response` 객체를 선택하고, 수집된 모든 정보(맛집 목록, 좌표 정보, 지역 유래 등)를 종합하여 친절하고 가독성 좋은 한국어로 최종 답변을 작성하세요.
+    - 정보가 더 필요하다면: `Plan` 객체를 선택하여 현재 상황에 맞게 남은 계획을 수정하거나 새로운 단계를 추가하세요.
+
+    지금까지 얻은 데이터를 바탕으로 최선의 결정을 내리세요.
+    """
 
     replanner = llm.with_structured_output(Act)
     result = await replanner.ainvoke(prompt)

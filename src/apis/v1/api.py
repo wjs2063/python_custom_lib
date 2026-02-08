@@ -12,6 +12,6 @@ aggregate_router.include_router(wikipedia_router,prefix="/wikipedia",tags=["wiki
 aggregate_router.include_router(sk_router,prefix="/sk",tags=["sk"])
 aggregate_router.include_router(naver_router,prefix="/naver",tags=["naver"])
 
-@aggregate_router.get("/")
+@aggregate_router.get("/exception")
 async def index():
     raise Exception()

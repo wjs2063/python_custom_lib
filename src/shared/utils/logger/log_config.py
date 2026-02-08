@@ -3,5 +3,5 @@ from datetime import datetime
 from core.config import settings
 
 PROJECT_NAME = settings.PROJECT_NAME
-ENVIRONMENT = "dev"
-PROJECT_VERSION = "1.0.0"
+ENVIRONMENT = settings.ENVIRONMENT
+PROJECT_VERSION = settings.PROJECT_VERSION

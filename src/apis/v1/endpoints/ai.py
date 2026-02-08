@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 
-@router.post("/plan_and_execute")
+@router.post("/plan-and-execute")
 async def chat(query:str, recursion_limit:int=20):
     graph = plan_and_execute_workflow.compile()
     config = {"recursion_limit": recursion_limit}
@@ -20,5 +20,4 @@ async def reflection_chat(query:str, recursion_limit:int=20):
     graph = reflection_workflow.compile()
     config = {"recursion_limit": recursion_limit}
     response = await graph.ainvoke({"input":query},config=config)
-    print(response)
     return response

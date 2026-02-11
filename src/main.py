@@ -24,20 +24,40 @@ register_application_exception(app)
 #app.add_middleware(TraceIDMiddleWare)
 
 
+from fastapi import Request, Response
+from starlette.responses import JSONResponse
+import uuid
+
 @app.middleware("http")
-async def middleware(request: Request,call_next):
+async def middleware(request: Request, call_next):
     trace_id = str(uuid.uuid4())
-    token = trace_id_var.set(trace_id)
+    trace_token = trace_id_var.set(trace_id)
+
+    # 1. 요청 바디 읽기
+    decoded_body = {}
+    body = await request.body()
+    # 2. 바디 내용을 로그에 출력 (디코딩 필요 시 .decode() 사용)
+    if body:
+        decoded_body = body.decode('utf-8')
+
+    # 3. 중요: 소비된 스트림을 재설정 (다음 미들웨어나 엔드포인트에서 읽을 수 있도록)
+    async def receive():
+        return {"type": "http.request", "body": body}
+
+    # request 객체의 _receive를 가로챔
+    request._receive = receive
+
     try:
-        return await call_next(request)
+        response = await call_next(request)
+        return response
     except Exception as e:
-        log.error(f"에러입니다 : {str(e)}")
+        log.error(f"에러 발생 [ID: {trace_id}]: {str(e)}",extra={"body":decoded_body})
         return JSONResponse(
             status_code=500,
             content={"message": "Internal Server Error", "code": 99},
         )
     finally:
-        trace_id_var.reset(token)
+        trace_id_var.reset(trace_token)
 
 
 

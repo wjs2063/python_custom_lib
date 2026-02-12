@@ -7,6 +7,7 @@ dependencies = [
     "a2a-sdk[all]>=0.3.22",
     "aiohttp>=3.13.2",
     "apscheduler>=3.11.2",
+    "atlassian-python-api>=4.0.7",
     "fastapi[all]>=0.124.4",
     "langchain>=1.2.9",
     "langchain-core>=1.2.9",
